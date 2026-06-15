@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#7c5cff" />
+  <title>Памятка статей расхода</title>
+  <meta name="description" content="Интерактивная памятка для выбора статьи расхода по дереву решений." />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <main class="shell" id="app">
+    <aside class="sidebar" aria-label="Навигация по памятке">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" role="img">
+            <rect x="6" y="6" width="20" height="20" rx="6"></rect>
+            <path d="M12 12h10v10H12z"></path>
+          </svg>
+        </div>
+        <div>
+          <h1>Памятка<br>статей расхода</h1>
+          <p id="versionLabel">Версия 1.0</p>
+        </div>
+      </div>
+
+      <nav class="steps" id="steps" aria-label="Выбранный путь"></nav>
+
+      <div class="sidebar-footer">
+        <div class="mini-status" id="modeLabel">
+          <span></span>
+          Обычная web-страница
+        </div>
+        <button class="ghost-button" id="themeToggle" type="button" aria-label="Переключить тему">
+          <span class="sun" aria-hidden="true">☼</span>
+          <span id="themeText">Светлая тема</span>
+        </button>
+      </div>
+    </aside>
+
+    <section class="content" aria-live="polite">
+      <header class="mobile-header">
+        <button class="icon-button" id="mobileBack" type="button" aria-label="Назад">
+          <span>←</span>
+        </button>
+        <strong>Памятка статей расхода</strong>
+        <button class="icon-button" id="mobileRestart" type="button" aria-label="Начать заново">
+          <span>↻</span>
+        </button>
+      </header>
+
+      <div class="progress-wrap">
+        <div class="badge" id="badge">Вопрос</div>
+        <div class="progress-line" aria-hidden="true"><span id="progressBar"></span></div>
+      </div>
+
+      <section class="screen active" id="questionScreen">
+        <div class="question-copy">
+          <p class="eyebrow" id="eyebrow"></p>
+          <h2 id="questionTitle"></h2>
+          <p id="questionHint"></p>
+        </div>
+        <div class="options-grid" id="optionsGrid"></div>
+      </section>
+
+      <section class="screen" id="resultScreen">
+        <div class="result-layout">
+          <div class="result-main">
+            <p class="success-pill" id="resultStatus">Готово</p>
+            <h2>Рекомендуемая статья</h2>
+            <p class="result-subtitle">Используйте итог ниже при оформлении документа.</p>
+
+            <article class="result-card" id="resultCard">
+              <div class="quote-mark" aria-hidden="true">“</div>
+              <div class="result-code" id="resultCode"></div>
+              <h3 id="resultTitle"></h3>
+              <p id="resultDescription"></p>
+              <p class="result-note" id="resultNote"></p>
+              <button class="copy-button" id="copyButton" type="button">
+                <span>Скопировать</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h10v10H8z"></path><path d="M6 16H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              </button>
+            </article>
+
+            <div class="recommendations">
+              <h3>Путь выбора</h3>
+              <ul id="pathList"></ul>
+            </div>
+
+            <div class="actions">
+              <button class="secondary-button" id="restartButton" type="button">
+                Начать заново
+                <span aria-hidden="true">↻</span>
+              </button>
+              <button class="primary-button" id="telegramButton" type="button" hidden>
+                Отправить в Telegram
+                <span aria-hidden="true">→</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="bottom-actions" id="bottomActions">
+        <button class="secondary-button" id="backButton" type="button">
+          <span aria-hidden="true">←</span>
+          Назад
+        </button>
+        <button class="primary-button" id="nextHintButton" type="button" disabled>
+          Выберите вариант
+          <span aria-hidden="true">→</span>
+        </button>
+      </footer>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
