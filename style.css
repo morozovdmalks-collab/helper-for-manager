@@ -425,7 +425,7 @@ button:focus-visible,
 }
 
 .options-grid.compact {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .option-card {
@@ -527,20 +527,6 @@ button:focus-visible,
   color: var(--muted);
   font-size: 15px;
   line-height: 1.45;
-}
-
-.eyebrow[hidden],
-#questionHint[hidden] {
-  display: none !important;
-}
-
-.option-card.no-description {
-  align-items: center;
-  min-height: 132px;
-}
-
-.option-card.no-description .option-copy {
-  padding-right: 28px;
 }
 
 .option-arrow {
@@ -837,7 +823,8 @@ button:focus-visible,
 
 @media (min-width: 980px) {
   .options-grid.compact .option-card {
-    min-height: 132px;
+    min-height: 174px;
+    flex-direction: column;
   }
 
   .options-grid.compact .option-copy strong {
@@ -910,10 +897,6 @@ button:focus-visible,
   .option-card {
     min-height: 118px;
     padding: 20px 56px 20px 20px;
-  }
-
-  .option-card.no-description {
-    min-height: 104px;
   }
 
   .option-icon {
