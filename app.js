@@ -142,21 +142,28 @@
     if (!tg || !tg.MainButton) return;
     try {
       const button = tg.MainButton;
+
+      // Не задаём текст кнопке через setText(" "). В Telegram это может оставлять
+      // маленький пустой квадрат внизу справа. Только выключаем и скрываем кнопку.
       if (typeof button.hideProgress === "function") button.hideProgress();
       if (typeof button.disable === "function") button.disable();
-      if (typeof button.setText === "function") button.setText(" ");
-      if (typeof button.setParams === "function") {
-        button.setParams({ is_visible: false, is_active: false, text: " " });
-      }
       if (typeof button.hide === "function") button.hide();
-      window.setTimeout(() => {
-        try {
-          if (typeof button.hide === "function") button.hide();
-          if (typeof button.disable === "function") button.disable();
-        } catch (error) {
-          // Безопасно игнорируем: это только скрытие служебной кнопки Telegram.
-        }
-      }, 250);
+
+      if (typeof button.setParams === "function") {
+        button.setParams({ is_visible: false, is_active: false });
+      }
+
+      [100, 300, 800].forEach((delay) => {
+        window.setTimeout(() => {
+          try {
+            if (typeof button.hideProgress === "function") button.hideProgress();
+            if (typeof button.disable === "function") button.disable();
+            if (typeof button.hide === "function") button.hide();
+          } catch (error) {
+            // Безопасно игнорируем: это только скрытие служебной кнопки Telegram.
+          }
+        }, delay);
+      });
     } catch (error) {
       console.warn("Telegram MainButton hide skipped", error);
     }
@@ -175,6 +182,10 @@
     on(els.searchOpenButtonMobile, "click", openSearch);
     on(els.searchCloseButton, "click", closeSearch);
     on(els.articleSearchInput, "input", renderSearchResults);
+    on(els.articleSearchInput, "keyup", renderSearchResults);
+    on(els.articleSearchInput, "change", renderSearchResults);
+    on(els.articleSearchInput, "search", renderSearchResults);
+    on(els.articleSearchInput, "paste", () => window.setTimeout(renderSearchResults, 0));
     window.addEventListener("keydown", handleHotkeys);
   }
 
@@ -382,15 +393,25 @@
     searchIndex = Object.entries(tree.nodes)
       .filter(([, node]) => node.type === "result")
       .map(([id, node]) => {
-        const paths = findPathsToNode(id).map((path) => path.map((item) => item.answer).join(" → "));
+        const paths = findPathsToNode(id);
+        const pathTexts = paths.map((path) => path.map((item) => item.answer).join(" → "));
         const result = node.title || node.code || "Результат";
+
         return {
           id,
           result,
           code: node.code || "",
           title: node.title || "",
-          text: [result, node.code, node.title, node.description, node.tone, ...paths].filter(Boolean).join(" ").toLowerCase(),
-          paths
+          text: normalizeSearch([
+            result,
+            node.code,
+            node.title,
+            node.description,
+            node.tone,
+            ...pathTexts
+          ].filter(Boolean).join(" ")),
+          paths,
+          pathTexts
         };
       })
       .sort((a, b) => a.result.localeCompare(b.result, "ru"));
@@ -438,7 +459,9 @@
   }
 
   function renderSearchResults() {
-    const query = els.articleSearchInput.value.trim().toLowerCase();
+    if (!els.articleSearchInput || !els.articleSearchResults) return;
+
+    const query = normalizeSearch(els.articleSearchInput.value);
     const results = (query
       ? searchIndex.filter((item) => item.text.includes(query))
       : searchIndex
@@ -450,8 +473,7 @@
     }
 
     els.articleSearchResults.innerHTML = results.map((item) => {
-      const path = item.paths[0] || [];
-      const pathText = path.length ? path.map((step) => step.answer).join(" → ") : "Путь не найден";
+      const pathText = item.pathTexts && item.pathTexts.length ? item.pathTexts[0] : "Путь не найден";
       return `
         <button class="search-result-card" type="button" data-result-id="${escapeHtml(item.id)}">
           <strong>${escapeHtml(item.result)}</strong>
@@ -592,6 +614,13 @@
 
   function updateThemeText(theme) {
     els.themeText.textContent = theme === "dark" ? "Тёмная тема" : "Светлая тема";
+  }
+
+  function normalizeSearch(value) {
+    return String(value || "")
+      .toLocaleLowerCase("ru-RU")
+      .replace(/ё/g, "е")
+      .trim();
   }
 
   function truncate(text, max) {
