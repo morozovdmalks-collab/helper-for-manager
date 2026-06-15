@@ -1,35 +1,27 @@
 /*
   Памятка статей расхода — данные дерева решений.
 
-  Как редактировать:
-  1. Тексты вопросов лежат в поле question.
-  2. Варианты ответов лежат в массиве options.
-  3. Итоговые статьи лежат в узлах type: "result".
-  4. В итоговых узлах поле title должно повторять текст из блок-схемы без дополнительных пояснений.
-  5. Не меняйте id узлов, если не уверены: на них ссылаются варианты next.
+  Важно:
+  - В вопросах, вариантах и результатах оставлены только формулировки из блок-схемы Visio.
+  - Не меняйте id узлов, если не уверены: на них ссылаются варианты next.
 */
 
 window.DECISION_TREE = {
   title: "Памятка статей расхода",
   version: "1.0",
   startNode: "q-root",
-  source: "По схеме Visio: Памятка статей расхода",
   nodes: {
     "q-root": {
       type: "question",
-      eyebrow: "Старт",
-      question: "Статья для клиента или для поставщика?",
-      hint: "Выберите, какой документ оформляется: продажа клиенту или закупка у поставщика.",
+      question: "СТАТЬЯ для КЛИЕНТА (мы продаем, документ «Заказ Покупателя»), или для ПОСТАВЩИКА (мы покупаем, документ «Заказ Поставщику»)?",
       options: [
         {
-          label: "Для клиента",
-          description: "Мы продаём. Документ: «Заказ Покупателя».",
+          label: "Для КЛИЕНТА (документ «Заказ Покупателя»)",
           next: "q-client-direction",
           icon: "user"
         },
         {
-          label: "Для поставщика",
-          description: "Мы покупаем. Документ: «Заказ Поставщику».",
+          label: "Для ПОСТАВЩИКА (документ «Заказ Поставщику»)",
           next: "q-supplier-buy",
           icon: "supplier"
         }
@@ -38,19 +30,15 @@ window.DECISION_TREE = {
 
     "q-client-direction": {
       type: "question",
-      eyebrow: "Клиент",
-      question: "Отдел продаж или автоматизация?",
-      hint: "Определите направление клиентского заказа.",
+      question: "ОТДЕЛ ПРОДАЖ или АВТОМАТИЗАЦИЯ?",
       options: [
         {
           label: "Отдел продаж",
-          description: "Клиентский заказ относится к отделу продаж.",
           next: "r-manager-name",
           icon: "sales"
         },
         {
           label: "Автоматизация",
-          description: "Клиентский заказ относится к автоматизации / проекту.",
           next: "r-project-name",
           icon: "automation"
         }
@@ -59,19 +47,15 @@ window.DECISION_TREE = {
 
     "q-supplier-buy": {
       type: "question",
-      eyebrow: "Поставщик",
       question: "Что закупаем?",
-      hint: "Выберите тип закупки: материальные вещи / ПО или работу / услугу.",
       options: [
         {
-          label: "Оборудование, сырьё, вещи или ПО",
-          description: "Сканеры, принтеры, расходка, предметы, которые можно взять в руки, или программное обеспечение.",
+          label: "Оборудование, сырье, вещи (сканеры, принтеры, расходка – то, что можно взять в руки) ИЛИ программное обеспечение (ПО)",
           next: "q-equipment-user",
           icon: "box"
         },
         {
-          label: "Работу или услугу",
-          description: "Услуга, работа, доставка, маркетинг, командировка, обучение и т.п.",
+          label: "РАБОТУ или УСЛУГУ",
           next: "q-service-user",
           icon: "service"
         }
@@ -80,19 +64,15 @@ window.DECISION_TREE = {
 
     "q-equipment-user": {
       type: "question",
-      eyebrow: "Оборудование / ПО",
-      question: "Кто в итоге будет это использовать?",
-      hint: "Важно понять: закупка предназначена для клиента или для внутреннего использования.",
+      question: "КТО в итоге будет это использовать?",
       options: [
         {
-          label: "Клиент",
-          description: "Мы продаём это клиенту или используем как сырьё в производстве.",
+          label: "КЛИЕНТ (мы продаем это или используем как сырье в производстве)",
           next: "q-equipment-client-direction",
           icon: "client"
         },
         {
-          label: "Мы сами используем",
-          description: "Например: стол в офис, питьевая вода, спецодежда, дополнительное место в 1С.",
+          label: "Мы сами используем (например, стол в офис, вода питьевая или спецодежда, или доп. Место в 1С)",
           next: "q-equipment-internal-direction",
           icon: "team"
         }
@@ -101,25 +81,20 @@ window.DECISION_TREE = {
 
     "q-equipment-client-direction": {
       type: "question",
-      eyebrow: "Для клиента",
-      question: "Есть ли понимание, под какое направление?",
-      hint: "Выберите направление: отдел продаж, автоматизация или непонятно / просто на склад.",
+      question: "Есть ли понимание, под какое направление? ОТДЕЛ ПРОДАЖ или АВТОМАТИЗАЦИЯ?",
       options: [
         {
           label: "Отдел продаж",
-          description: "Закупка для клиентского заказа отдела продаж.",
           next: "r-2-1-sales-supplier",
           icon: "sales"
         },
         {
           label: "Автоматизация",
-          description: "Закупка для проекта автоматизации.",
           next: "r-3-1-automation-supplier",
           icon: "automation"
         },
         {
-          label: "Непонятно / просто на склад",
-          description: "Например, расходные материалы без привязки к проекту.",
+          label: "Непонятно/просто на склад (например, расходка)",
           next: "r-2-1-sales-supplier",
           icon: "warehouse"
         }
@@ -128,31 +103,25 @@ window.DECISION_TREE = {
 
     "q-equipment-internal-direction": {
       type: "question",
-      eyebrow: "Внутреннее использование",
-      question: "Есть ли понимание, под какое направление?",
-      hint: "Выберите внутреннее направление, для которого закупаются оборудование, вещи или ПО.",
+      question: "Есть ли понимание, под какое направление? ОТДЕЛ ПРОДАЖ или АВТОМАТИЗАЦИЯ?",
       options: [
         {
           label: "Отдел продаж",
-          description: "Внутренние нужды отдела продаж.",
           next: "r-2-5-sales-other",
           icon: "sales"
         },
         {
           label: "Автоматизация",
-          description: "Внутренние нужды автоматизации.",
           next: "r-3-6-automation-other",
           icon: "automation"
         },
         {
-          label: "Автоматизация — конструкторский отдел",
-          description: "ОКР, оснащение, конструкторские задачи.",
+          label: "Автоматизация - Конструкторский отдел",
           next: "r-3-4-automation-rd",
           icon: "constructor"
         },
         {
-          label: "Непонятно / для всех",
-          description: "Общая закупка для офиса или нескольких направлений.",
+          label: "Непонятно/для всех",
           next: "r-1-2-office-maintenance",
           icon: "office"
         }
@@ -161,19 +130,15 @@ window.DECISION_TREE = {
 
     "q-service-user": {
       type: "question",
-      eyebrow: "Работа / услуга",
-      question: "Кто в итоге будет это использовать?",
-      hint: "Услуга перепродаётся клиенту или нужна нам самим?",
+      question: "КТО в итоге будет это использовать?",
       options: [
         {
-          label: "Клиент",
-          description: "Мы перепродаём эту услугу в 1С.",
+          label: "КЛИЕНТ (мы ПЕРЕПРОДАЕМ в 1С эту услугу)",
           next: "q-service-client-direction",
           icon: "client"
         },
         {
           label: "Мы сами используем и платим за это",
-          description: "Внутренняя услуга или работа для нашей компании.",
           next: "q-service-internal-direction",
           icon: "team"
         }
@@ -182,19 +147,15 @@ window.DECISION_TREE = {
 
     "q-service-client-direction": {
       type: "question",
-      eyebrow: "Услуга для клиента",
-      question: "К какому направлению относится данный заказ клиента?",
-      hint: "Выберите направление клиентского заказа.",
+      question: "К какому направлению относится данный заказ Клиента?",
       options: [
         {
           label: "Отдел продаж",
-          description: "Клиентский заказ отдела продаж.",
           next: "r-2-5-sales-other",
           icon: "sales"
         },
         {
           label: "Автоматизация",
-          description: "Клиентский проект автоматизации.",
           next: "r-project-name",
           icon: "automation"
         }
@@ -203,25 +164,20 @@ window.DECISION_TREE = {
 
     "q-service-internal-direction": {
       type: "question",
-      eyebrow: "Внутренняя услуга",
-      question: "Есть ли чёткое понимание направления для этого расхода?",
-      hint: "Выберите направление, к которому относится расход.",
+      question: "Есть ли четкое понимание направления для этого расхода?",
       options: [
         {
           label: "Отдел продаж",
-          description: "Услуга нужна отделу продаж.",
           next: "q-sales-service-kind",
           icon: "sales"
         },
         {
           label: "Автоматизация",
-          description: "Услуга нужна автоматизации.",
           next: "q-automation-service-kind",
           icon: "automation"
         },
         {
-          label: "Непонятно / для всех",
-          description: "Общий расход компании или расход без явной привязки к направлению.",
+          label: "Непонятно/для всех",
           next: "q-general-service-kind",
           icon: "office"
         }
@@ -230,37 +186,30 @@ window.DECISION_TREE = {
 
     "q-sales-service-kind": {
       type: "question",
-      eyebrow: "Отдел продаж",
       question: "Какой вид работы или услуги?",
-      hint: "Выберите наиболее подходящий тип расхода отдела продаж.",
       options: [
         {
           label: "Транспортные расходы",
-          description: "Доставка, перемещение, перевозка.",
           next: "q-sales-transport-direction",
           icon: "truck"
         },
         {
           label: "Поиск персонала",
-          description: "Кадровые расходы по поиску сотрудников.",
           next: "r-2-6-sales-recruiting",
           icon: "people"
         },
         {
-          label: "Тендеры — оплата за участие",
-          description: "Расходы на участие в тендерах.",
+          label: "Тендеры – оплата за участие",
           next: "r-2-3-sales-tenders",
           icon: "doc"
         },
         {
           label: "Реклама и маркетинг",
-          description: "Маркетинговые расходы отдела продаж.",
           next: "r-2-2-sales-marketing",
           icon: "megaphone"
         },
         {
-          label: "Прочее",
-          description: "Новое или нельзя отнести к другим видам.",
+          label: "Прочее (новое/нельзя отнести к иным видам)",
           next: "r-2-5-sales-other",
           icon: "dots"
         }
@@ -269,19 +218,15 @@ window.DECISION_TREE = {
 
     "q-sales-transport-direction": {
       type: "question",
-      eyebrow: "Транспортные расходы",
       question: "Доставка откуда-куда?",
-      hint: "Для отдела продаж оба варианта ведут к одной статье.",
       options: [
         {
-          label: "От поставщика — к нам",
-          description: "Доставка от поставщика в нашу компанию.",
+          label: "От Поставщика - к нам",
           next: "r-2-4-sales-transport",
           icon: "inbound"
         },
         {
-          label: "От нас — к клиенту",
-          description: "Доставка от нашей компании клиенту.",
+          label: "От нас – к Клиенту",
           next: "r-2-4-sales-transport",
           icon: "outbound"
         }
@@ -290,37 +235,30 @@ window.DECISION_TREE = {
 
     "q-automation-service-kind": {
       type: "question",
-      eyebrow: "Автоматизация",
       question: "Какой вид работы или услуги?",
-      hint: "Выберите наиболее подходящий тип расхода автоматизации.",
       options: [
         {
           label: "Транспортные расходы",
-          description: "Доставка, перемещение, перевозка.",
           next: "q-automation-transport-direction",
           icon: "truck"
         },
         {
-          label: "Командировки",
-          description: "Билеты, гостиницы и другие командировочные расходы.",
+          label: "Командировки (билеты, гостиницы)",
           next: "q-automation-trip-place",
           icon: "plane"
         },
         {
           label: "Реклама и маркетинг",
-          description: "Маркетинговые расходы автоматизации.",
           next: "r-3-3-automation-marketing",
           icon: "megaphone"
         },
         {
           label: "Поиск персонала",
-          description: "Кадровые расходы по поиску сотрудников автоматизации.",
           next: "r-3-7-automation-recruiting",
           icon: "people"
         },
         {
-          label: "Прочее",
-          description: "Новое или нельзя отнести к другим видам.",
+          label: "Прочее (новое/нельзя отнести к иным видам)",
           next: "r-3-6-automation-other",
           icon: "dots"
         }
@@ -329,19 +267,15 @@ window.DECISION_TREE = {
 
     "q-automation-transport-direction": {
       type: "question",
-      eyebrow: "Транспортные расходы",
       question: "Доставка откуда-куда?",
-      hint: "Для автоматизации статья зависит от направления доставки.",
       options: [
         {
-          label: "От поставщика — к нам",
-          description: "Доставка от поставщика в нашу компанию.",
+          label: "От Поставщика - к нам",
           next: "r-3-5-automation-transport",
           icon: "inbound"
         },
         {
-          label: "От нас — к клиенту",
-          description: "Доставка клиенту в рамках проекта.",
+          label: "От нас – к Клиенту",
           next: "r-project-name",
           icon: "outbound"
         }
@@ -350,25 +284,20 @@ window.DECISION_TREE = {
 
     "q-automation-trip-place": {
       type: "question",
-      eyebrow: "Командировки",
-      question: "Командировка на площадку или в офис?",
-      hint: "Выберите, куда относится командировка.",
+      question: "Командировка на ПЛОЩАДКУ или в офис?",
       options: [
         {
           label: "На площадку",
-          description: "Командировка на площадку клиента / проекта.",
           next: "r-project-name",
           icon: "location"
         },
         {
-          label: "В офис",
-          description: "Офисная работа для иногородних сотрудников.",
+          label: "В офис (офисная работа для иногородних сотрудников)",
           next: "r-3-9-automation-office-trips",
           icon: "office"
         },
         {
-          label: "Не получается разнести",
-          description: "Счёт выставлен общей суммой, без понятной детализации.",
+          label: "Не получается разнести (счет - общей суммой)",
           next: "r-3-2-automation-trips",
           icon: "split"
         }
@@ -377,55 +306,45 @@ window.DECISION_TREE = {
 
     "q-general-service-kind": {
       type: "question",
-      eyebrow: "Общие расходы",
       question: "Какой вид работы или услуги?",
-      hint: "Выберите тип общего расхода компании.",
       options: [
         {
-          label: "Поиск персонала",
-          description: "Общие сотрудники, относящиеся к УК.",
-          next: "r-1-4-general-recruiting",
-          icon: "people"
-        },
-        {
           label: "Аренда",
-          description: "Аренда помещений.",
           next: "r-1-1-rent",
           icon: "building"
         },
         {
-          label: "Обслуживание офиса",
-          description: "Интернет, электричество, уборка, 1С и прочее.",
+          label: "Обслуживание офиса (интернет, электричество, уборка/1С и прочее)",
           next: "r-1-2-office-maintenance",
           icon: "office"
         },
         {
           label: "Обучение",
-          description: "Обучающие мероприятия и материалы.",
           next: "r-1-7-training",
           icon: "study"
         },
         {
-          label: "Корпоративные радости",
-          description: "Цветы, корпоратив, напитки и прочее.",
+          label: "Поиск персонала (общие сотрудники, относящиеся к УК)",
+          next: "r-1-4-general-recruiting",
+          icon: "people"
+        },
+        {
+          label: "Корпоративные радости (цветы, корпоратив, напитки и прочее)",
           next: "r-1-11-corporate",
           icon: "spark"
         },
         {
-          label: "Представительские расходы",
-          description: "Сладости и подарки поставщикам.",
+          label: "Представительские расходы (сладости и подарки поставщикам)",
           next: "r-1-12-representation",
           icon: "gift"
         },
         {
-          label: "Прочее",
-          description: "Новое или нельзя отнести к другим видам.",
+          label: "Прочее (новое/нельзя отнести к иным видам)",
           next: "r-1-8-other",
           icon: "dots"
         },
         {
           label: "Расходы учредителей",
-          description: "В схеме ведёт к статье обеспечения безопасности.",
           next: "r-1-3-security",
           icon: "shield"
         }
@@ -439,7 +358,7 @@ window.DECISION_TREE = {
     },
     "r-project-name": {
       type: "result",
-      title: "Название проекта",
+      title: "Название проекта (напр., Хлебпром Волоколамск, ЯКАИБН и т.д.)",
       status: "ready"
     },
     "r-2-1-sales-supplier": {

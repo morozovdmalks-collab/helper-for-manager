@@ -163,22 +163,31 @@
 
   function renderQuestion(node) {
     switchScreen("question");
-    els.eyebrow.textContent = node.eyebrow || "Вопрос";
+
+    const hasEyebrow = Boolean(node.eyebrow);
+    els.eyebrow.hidden = !hasEyebrow;
+    els.eyebrow.textContent = node.eyebrow || "";
+
     els.questionTitle.textContent = node.question;
-    els.questionHint.textContent = node.hint || "Выберите наиболее подходящий вариант.";
+
+    const hasHint = Boolean(node.hint);
+    els.questionHint.hidden = !hasHint;
+    els.questionHint.textContent = node.hint || "";
+
     els.optionsGrid.innerHTML = "";
-    els.optionsGrid.classList.toggle("compact", node.options.length >= 3);
+    els.optionsGrid.classList.toggle("compact", node.options.length >= 4);
 
     node.options.forEach((option, index) => {
       const button = document.createElement("button");
-      button.className = "option-card";
+      const hasDescription = Boolean(option.description);
+      button.className = `option-card${hasDescription ? "" : " no-description"}`;
       button.type = "button";
       button.style.animationDelay = `${index * 35}ms`;
       button.innerHTML = `
         <span class="option-icon" aria-hidden="true"><svg viewBox="0 0 24 24">${iconMap[option.icon] || iconMap.dots}</svg></span>
         <span class="option-copy">
           <strong>${escapeHtml(option.label)}</strong>
-          <span>${escapeHtml(option.description || "")}</span>
+          ${hasDescription ? `<span>${escapeHtml(option.description)}</span>` : ""}
         </span>
         <span class="option-arrow" aria-hidden="true">→</span>
       `;
@@ -283,8 +292,8 @@
       items.push({
         status: "current",
         number: history.length + 1,
-        title: node.eyebrow || "Вопрос",
-        detail: truncate(node.question, 46)
+        title: truncate(node.question, 34),
+        detail: ""
       });
     }
 
