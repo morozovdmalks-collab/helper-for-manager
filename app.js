@@ -39,14 +39,24 @@
     pathList: $("#pathList"),
     copyButton: $("#copyButton"),
     telegramButton: $("#telegramButton"),
+    reportButton: $("#reportButton"),
+    searchOpenButton: $("#searchOpenButton"),
+    searchOpenButtonMobile: $("#searchOpenButtonMobile"),
+    searchCloseButton: $("#searchCloseButton"),
+    searchPanel: $("#searchPanel"),
+    articleSearchInput: $("#articleSearchInput"),
+    articleSearchResults: $("#articleSearchResults"),
     toast: $("#toast")
   };
 
   let tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
 
+  const REPORT_GROUP_URL = "https://t.me/+d69IL3kvxSEwYzgy";
+
   let currentNodeId = tree.startNode;
   let history = [];
   let toastTimer = null;
+  let searchIndex = [];
 
   const iconMap = {
     user: "<path d='M20 21a8 8 0 0 0-16 0'></path><circle cx='12' cy='7' r='4'></circle>",
@@ -82,6 +92,7 @@
     loadTelegramScript();
     initTelegram();
     restoreTheme();
+    buildSearchIndex();
     bindEvents();
     render();
   }
@@ -113,6 +124,9 @@
     try {
       tg.ready();
       tg.expand();
+      if (tg.MainButton && typeof tg.MainButton.hide === "function") {
+        tg.MainButton.hide();
+      }
       document.body.classList.add("telegram-mode");
     } catch (error) {
       console.warn("Telegram WebApp init skipped", error);
@@ -127,10 +141,19 @@
     els.copyButton.addEventListener("click", copyResult);
     els.themeToggle.addEventListener("click", toggleTheme);
     els.telegramButton.addEventListener("click", sendToTelegram);
+    els.reportButton.addEventListener("click", reportError);
+    els.searchOpenButton.addEventListener("click", openSearch);
+    els.searchOpenButtonMobile.addEventListener("click", openSearch);
+    els.searchCloseButton.addEventListener("click", closeSearch);
+    els.articleSearchInput.addEventListener("input", renderSearchResults);
     window.addEventListener("keydown", handleHotkeys);
   }
 
   function handleHotkeys(event) {
+    if (event.key === "Escape" && !els.searchPanel.hidden) {
+      closeSearch();
+      return;
+    }
     if (event.key === "Escape") goBack();
     if (event.key.toLowerCase() === "r" && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
@@ -214,6 +237,7 @@
     });
 
     els.telegramButton.hidden = false;
+    els.reportButton.hidden = false;
   }
 
   function switchScreen(name) {
@@ -221,6 +245,10 @@
     els.questionScreen.classList.toggle("active", !isResult);
     els.resultScreen.classList.toggle("active", isResult);
     els.bottomActions.hidden = isResult;
+    if (!isResult) {
+      els.reportButton.hidden = true;
+      els.telegramButton.hidden = true;
+    }
   }
 
   function chooseOption(option) {
@@ -243,12 +271,14 @@
     }
     const last = history.pop();
     currentNodeId = last.nodeId;
+    closeSearch(false);
     render();
   }
 
   function restart() {
     history = [];
     currentNodeId = tree.startNode;
+    closeSearch(false);
     render();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -257,7 +287,7 @@
     const canBack = history.length > 0;
     els.backButton.disabled = !canBack;
     els.mobileBack.disabled = !canBack;
-    els.nextHintButton.textContent = node.type === "result" ? "Готово" : "Выберите вариант →";
+    els.nextHintButton.textContent = node.type === "result" ? "" : "Выберите вариант →";
   }
 
   function renderSteps(node) {
@@ -319,6 +349,105 @@
     return Math.max(...distances, 1);
   }
 
+
+  function buildSearchIndex() {
+    searchIndex = Object.entries(tree.nodes)
+      .filter(([, node]) => node.type === "result")
+      .map(([id, node]) => {
+        const paths = findPathsToNode(id).map((path) => path.map((item) => item.answer).join(" → "));
+        const result = node.title || node.code || "Результат";
+        return {
+          id,
+          result,
+          code: node.code || "",
+          title: node.title || "",
+          text: [result, node.code, node.title, node.description, node.tone, ...paths].filter(Boolean).join(" ").toLowerCase(),
+          paths
+        };
+      })
+      .sort((a, b) => a.result.localeCompare(b.result, "ru"));
+  }
+
+  function findPathsToNode(targetId) {
+    const paths = [];
+
+    function walk(nodeId, path, visited) {
+      if (visited.has(nodeId)) return;
+      const node = tree.nodes[nodeId];
+      if (!node) return;
+      if (nodeId === targetId) {
+        paths.push(path);
+        return;
+      }
+      if (node.type === "result") return;
+      visited.add(nodeId);
+      node.options.forEach((option) => {
+        walk(option.next, [...path, { question: node.question, answer: option.label, next: option.next }], new Set(visited));
+      });
+    }
+
+    walk(tree.startNode, [], new Set());
+    return paths;
+  }
+
+  function openSearch() {
+    els.searchPanel.hidden = false;
+    els.questionScreen.classList.remove("active");
+    els.resultScreen.classList.remove("active");
+    els.bottomActions.hidden = true;
+    els.badge.textContent = "Поиск";
+    els.progressBar.style.width = "100%";
+    els.articleSearchInput.focus();
+    renderSearchResults();
+  }
+
+  function closeSearch(shouldRender = true) {
+    if (els.searchPanel.hidden) return;
+    els.searchPanel.hidden = true;
+    els.articleSearchInput.value = "";
+    els.articleSearchResults.innerHTML = "";
+    if (shouldRender) render();
+  }
+
+  function renderSearchResults() {
+    const query = els.articleSearchInput.value.trim().toLowerCase();
+    const results = (query
+      ? searchIndex.filter((item) => item.text.includes(query))
+      : searchIndex
+    ).slice(0, 30);
+
+    if (!results.length) {
+      els.articleSearchResults.innerHTML = `<div class="empty-search">Ничего не найдено</div>`;
+      return;
+    }
+
+    els.articleSearchResults.innerHTML = results.map((item) => {
+      const path = item.paths[0] || [];
+      const pathText = path.length ? path.map((step) => step.answer).join(" → ") : "Путь не найден";
+      return `
+        <button class="search-result-card" type="button" data-result-id="${escapeHtml(item.id)}">
+          <strong>${escapeHtml(item.result)}</strong>
+          <span>${escapeHtml(pathText)}</span>
+        </button>
+      `;
+    }).join("");
+
+    els.articleSearchResults.querySelectorAll(".search-result-card").forEach((button) => {
+      button.addEventListener("click", () => openSearchResult(button.dataset.resultId));
+    });
+  }
+
+  function openSearchResult(resultId) {
+    const item = searchIndex.find((entry) => entry.id === resultId);
+    if (!item) return;
+    const path = item.paths[0] || [];
+    history = path.map((step) => ({ ...step }));
+    currentNodeId = resultId;
+    closeSearch(false);
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   function currentResultText() {
     const node = getNode();
     if (!node || node.type !== "result") return "";
@@ -328,15 +457,10 @@
   async function copyResult() {
     const text = currentResultText();
     if (!text) return;
-    try {
-      await navigator.clipboard.writeText(text);
-      showToast("Результат скопирован");
-    } catch (error) {
-      fallbackCopy(text);
-    }
+    await copyText(text);
   }
 
-  function fallbackCopy(text) {
+  function fallbackCopy(text, showSuccess = true) {
     const textarea = document.createElement("textarea");
     textarea.value = text;
     textarea.setAttribute("readonly", "");
@@ -346,7 +470,7 @@
     textarea.select();
     document.execCommand("copy");
     document.body.removeChild(textarea);
-    showToast("Результат скопирован");
+    if (showSuccess) showToast("Текст скопирован");
   }
 
   function sendToTelegram() {
@@ -367,6 +491,52 @@
       showToast("Открываю Telegram");
     } catch (error) {
       window.location.href = telegramShareUrl;
+    }
+  }
+
+
+  async function reportError() {
+    const result = currentResultText();
+    if (!result) return;
+
+    const reportText = buildReportText(result);
+    await copyText(reportText, false);
+
+    try {
+      if (tg && typeof tg.openTelegramLink === "function") {
+        tg.openTelegramLink(REPORT_GROUP_URL);
+      } else {
+        window.open(REPORT_GROUP_URL, "_blank", "noopener,noreferrer");
+      }
+      showToast("Текст сообщения скопирован. Вставьте его в группу и добавьте комментарий.");
+    } catch (error) {
+      window.location.href = REPORT_GROUP_URL;
+    }
+  }
+
+  function buildReportText(result) {
+    const path = history.map((item) => `${item.question}: ${item.answer}`).join("\n");
+    return [
+      "Нашёл ошибку в памятке статей расхода.",
+      "",
+      `Результат: ${result}`,
+      "",
+      "Путь выбора:",
+      path || "Не указан",
+      "",
+      "Комментарий:",
+      ""
+    ].join("\n");
+  }
+
+  async function copyText(text, showSuccess = true) {
+    try {
+      await navigator.clipboard.writeText(text);
+      if (showSuccess) showToast("Текст скопирован");
+      return true;
+    } catch (error) {
+      fallbackCopy(text, showSuccess);
+      return false;
     }
   }
 
