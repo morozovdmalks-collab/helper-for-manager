@@ -686,6 +686,16 @@ button:focus-visible,
   display: none;
 }
 
+.result-code[hidden],
+#resultDescription[hidden],
+.result-note[hidden] {
+  display: none !important;
+}
+
+.result-code[hidden] + h3 {
+  margin-left: 48px;
+}
+
 .result-note {
   padding: 14px 16px;
   border-radius: 16px;

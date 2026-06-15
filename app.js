@@ -194,9 +194,17 @@
     els.resultStatus.textContent = isWarning ? "Проверьте" : "Готово";
     els.resultStatus.classList.toggle("warning", isWarning);
     els.resultCard.classList.toggle("warning", isWarning);
-    els.resultCode.textContent = node.code || "—";
-    els.resultTitle.textContent = node.title || "Результат";
+
+    const hasCode = Boolean(node.code);
+    const hasDescription = Boolean(node.description);
+    const hasNote = Boolean(node.tone);
+
+    els.resultCode.hidden = !hasCode;
+    els.resultCode.textContent = node.code || "";
+    els.resultTitle.textContent = node.title || node.code || "Результат";
+    els.resultDescription.hidden = !hasDescription;
     els.resultDescription.textContent = node.description || "";
+    els.resultNote.hidden = !hasNote;
     els.resultNote.textContent = node.tone || "";
     els.pathList.innerHTML = "";
 
@@ -315,15 +323,7 @@
   function currentResultText() {
     const node = getNode();
     if (!node || node.type !== "result") return "";
-    const path = history.map((item, index) => `${index + 1}. ${item.question} — ${item.answer}`).join("\n");
-    return [
-      `Рекомендуемая статья: ${node.code} — ${node.title}`,
-      node.description,
-      node.tone ? `Примечание: ${node.tone}` : "",
-      "",
-      "Путь выбора:",
-      path
-    ].filter(Boolean).join("\n");
+    return node.title || node.code || "";
   }
 
   async function copyResult() {
@@ -355,9 +355,7 @@
     const node = getNode();
     if (!node || node.type !== "result") return;
     tg.sendData(JSON.stringify({
-      code: node.code,
-      title: node.title,
-      description: node.description,
+      result: currentResultText(),
       path: history.map((item) => ({ question: item.question, answer: item.answer }))
     }));
   }
