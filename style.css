@@ -272,14 +272,17 @@ button:focus-visible,
 .mini-status {
   display: flex;
   gap: 10px;
-  align-items: center;
+  align-items: flex-start;
   color: var(--muted);
   font-size: 13px;
+  line-height: 1.42;
 }
 
 .mini-status span {
+  flex: 0 0 auto;
   width: 8px;
   height: 8px;
+  margin-top: 5px;
   border-radius: 50%;
   background: var(--green);
   box-shadow: 0 0 0 6px var(--green-soft);
@@ -705,6 +708,8 @@ button:focus-visible,
 
 .copy-button {
   min-height: 48px;
+  margin-top: 26px;
+  margin-left: 48px;
   padding: 0 18px;
   color: #2b8d44;
   background: rgba(93, 207, 121, .11);
@@ -929,6 +934,10 @@ button:focus-visible,
   .result-code {
     margin-left: 42px;
   }
+
+  .copy-button {
+    margin-left: 42px;
+  }
 }
 
 @media (max-width: 520px) {
@@ -975,6 +984,11 @@ button:focus-visible,
 
   .option-copy span {
     font-size: 14px;
+  }
+
+  .copy-button {
+    margin-left: 0;
+    margin-top: 24px;
   }
 
   .actions {

@@ -113,7 +113,6 @@
     try {
       tg.ready();
       tg.expand();
-      els.modeLabel.innerHTML = "<span></span> Telegram Mini App";
       document.body.classList.add("telegram-mode");
     } catch (error) {
       console.warn("Telegram WebApp init skipped", error);
@@ -214,7 +213,7 @@
       els.pathList.appendChild(li);
     });
 
-    els.telegramButton.hidden = !tg || !tg.sendData;
+    els.telegramButton.hidden = false;
   }
 
   function switchScreen(name) {
@@ -351,13 +350,24 @@
   }
 
   function sendToTelegram() {
-    if (!tg || !tg.sendData) return;
     const node = getNode();
-    if (!node || node.type !== "result") return;
-    tg.sendData(JSON.stringify({
-      result: currentResultText(),
-      path: history.map((item) => ({ question: item.question, answer: item.answer }))
-    }));
+    const result = currentResultText();
+    if (!node || node.type !== "result" || !result) return;
+
+    const shareText = `Результат: ${result}`;
+    const pageUrl = window.location.href.split("#")[0];
+    const telegramShareUrl = `https://t.me/share/url?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(shareText)}`;
+
+    try {
+      if (tg && typeof tg.openTelegramLink === "function") {
+        tg.openTelegramLink(telegramShareUrl);
+      } else {
+        window.open(telegramShareUrl, "_blank", "noopener,noreferrer");
+      }
+      showToast("Открываю Telegram");
+    } catch (error) {
+      window.location.href = telegramShareUrl;
+    }
   }
 
   function showToast(message) {
