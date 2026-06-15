@@ -36,10 +36,6 @@
           <span></span>
           При возникновении вопросов обращайтесь к Валентине Погожевой.
         </div>
-        <button class="ghost-button search-toggle" id="searchOpenButton" type="button" aria-label="Открыть поиск по статьям">
-          <span aria-hidden="true">⌕</span>
-          <span>Поиск по статьям</span>
-        </button>
         <button class="ghost-button" id="themeToggle" type="button" aria-label="Переключить тему">
           <span class="sun" aria-hidden="true">☼</span>
           <span id="themeText">Светлая тема</span>
@@ -53,9 +49,6 @@
           <span>←</span>
         </button>
         <strong>Памятка статей расхода</strong>
-        <button class="icon-button" id="searchOpenButtonMobile" type="button" aria-label="Открыть поиск по статьям">
-          <span>⌕</span>
-        </button>
         <button class="icon-button" id="mobileRestart" type="button" aria-label="Начать заново">
           <span>↻</span>
         </button>
@@ -65,21 +58,6 @@
         <div class="badge" id="badge">Вопрос</div>
         <div class="progress-line" aria-hidden="true"><span id="progressBar"></span></div>
       </div>
-
-      <section class="search-panel" id="searchPanel" aria-label="Поиск по статьям" hidden>
-        <div class="search-head">
-          <div>
-            <p class="eyebrow">Поиск</p>
-            <h2>Поиск по статьям</h2>
-          </div>
-          <button class="icon-button" id="searchCloseButton" type="button" aria-label="Закрыть поиск">×</button>
-        </div>
-        <label class="search-box">
-          <span>Введите номер или название статьи</span>
-          <input id="articleSearchInput" type="search" placeholder="Например: 3.5, транспортные, аренда" autocomplete="off" />
-        </label>
-        <div class="search-results" id="articleSearchResults"></div>
-      </section>
 
       <section class="screen active" id="questionScreen">
         <div class="question-copy">

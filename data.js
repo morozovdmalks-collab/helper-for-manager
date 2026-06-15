@@ -11,7 +11,7 @@
 
 window.DECISION_TREE = {
   title: "Памятка статей расхода",
-  version: "1.0",
+  version: "1.7",
   startNode: "q-root",
   source: "По схеме Visio: Памятка статей расхода",
   nodes: {

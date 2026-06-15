@@ -43,12 +43,6 @@
     copyButton: $("#copyButton"),
     telegramButton: $("#telegramButton"),
     reportButton: $("#reportButton"),
-    searchOpenButton: $("#searchOpenButton"),
-    searchOpenButtonMobile: $("#searchOpenButtonMobile"),
-    searchCloseButton: $("#searchCloseButton"),
-    searchPanel: $("#searchPanel"),
-    articleSearchInput: $("#articleSearchInput"),
-    articleSearchResults: $("#articleSearchResults"),
     toast: $("#toast")
   };
 
@@ -59,7 +53,6 @@
   let currentNodeId = tree.startNode;
   let history = [];
   let toastTimer = null;
-  let searchIndex = [];
 
   const iconMap = {
     user: "<path d='M20 21a8 8 0 0 0-16 0'></path><circle cx='12' cy='7' r='4'></circle>",
@@ -95,7 +88,6 @@
     loadTelegramScript();
     initTelegram();
     restoreTheme();
-    buildSearchIndex();
     bindEvents();
     render();
   }
@@ -178,22 +170,10 @@
     on(els.themeToggle, "click", toggleTheme);
     on(els.telegramButton, "click", sendToTelegram);
     on(els.reportButton, "click", reportError);
-    on(els.searchOpenButton, "click", openSearch);
-    on(els.searchOpenButtonMobile, "click", openSearch);
-    on(els.searchCloseButton, "click", closeSearch);
-    on(els.articleSearchInput, "input", renderSearchResults);
-    on(els.articleSearchInput, "keyup", renderSearchResults);
-    on(els.articleSearchInput, "change", renderSearchResults);
-    on(els.articleSearchInput, "search", renderSearchResults);
-    on(els.articleSearchInput, "paste", () => window.setTimeout(renderSearchResults, 0));
     window.addEventListener("keydown", handleHotkeys);
   }
 
   function handleHotkeys(event) {
-    if (event.key === "Escape" && !els.searchPanel.hidden) {
-      closeSearch();
-      return;
-    }
     if (event.key === "Escape") goBack();
     if (event.key.toLowerCase() === "r" && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
@@ -311,14 +291,12 @@
     }
     const last = history.pop();
     currentNodeId = last.nodeId;
-    closeSearch(false);
     render();
   }
 
   function restart() {
     history = [];
     currentNodeId = tree.startNode;
-    closeSearch(false);
     render();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -388,115 +366,6 @@
     return Math.max(...distances, 1);
   }
 
-
-  function buildSearchIndex() {
-    searchIndex = Object.entries(tree.nodes)
-      .filter(([, node]) => node.type === "result")
-      .map(([id, node]) => {
-        const paths = findPathsToNode(id);
-        const pathTexts = paths.map((path) => path.map((item) => item.answer).join(" → "));
-        const result = node.title || node.code || "Результат";
-
-        return {
-          id,
-          result,
-          code: node.code || "",
-          title: node.title || "",
-          text: normalizeSearch([
-            result,
-            node.code,
-            node.title,
-            node.description,
-            node.tone,
-            ...pathTexts
-          ].filter(Boolean).join(" ")),
-          paths,
-          pathTexts
-        };
-      })
-      .sort((a, b) => a.result.localeCompare(b.result, "ru"));
-  }
-
-  function findPathsToNode(targetId) {
-    const paths = [];
-
-    function walk(nodeId, path, visited) {
-      if (visited.has(nodeId)) return;
-      const node = tree.nodes[nodeId];
-      if (!node) return;
-      if (nodeId === targetId) {
-        paths.push(path);
-        return;
-      }
-      if (node.type === "result") return;
-      visited.add(nodeId);
-      node.options.forEach((option) => {
-        walk(option.next, [...path, { question: node.question, answer: option.label, next: option.next }], new Set(visited));
-      });
-    }
-
-    walk(tree.startNode, [], new Set());
-    return paths;
-  }
-
-  function openSearch() {
-    els.searchPanel.hidden = false;
-    els.questionScreen.classList.remove("active");
-    els.resultScreen.classList.remove("active");
-    els.bottomActions.hidden = true;
-    els.badge.textContent = "Поиск";
-    els.progressBar.style.width = "100%";
-    els.articleSearchInput.focus();
-    renderSearchResults();
-  }
-
-  function closeSearch(shouldRender = true) {
-    if (els.searchPanel.hidden) return;
-    els.searchPanel.hidden = true;
-    els.articleSearchInput.value = "";
-    els.articleSearchResults.innerHTML = "";
-    if (shouldRender) render();
-  }
-
-  function renderSearchResults() {
-    if (!els.articleSearchInput || !els.articleSearchResults) return;
-
-    const query = normalizeSearch(els.articleSearchInput.value);
-    const results = (query
-      ? searchIndex.filter((item) => item.text.includes(query))
-      : searchIndex
-    ).slice(0, 30);
-
-    if (!results.length) {
-      els.articleSearchResults.innerHTML = `<div class="empty-search">Ничего не найдено</div>`;
-      return;
-    }
-
-    els.articleSearchResults.innerHTML = results.map((item) => {
-      const pathText = item.pathTexts && item.pathTexts.length ? item.pathTexts[0] : "Путь не найден";
-      return `
-        <button class="search-result-card" type="button" data-result-id="${escapeHtml(item.id)}">
-          <strong>${escapeHtml(item.result)}</strong>
-          <span>${escapeHtml(pathText)}</span>
-        </button>
-      `;
-    }).join("");
-
-    els.articleSearchResults.querySelectorAll(".search-result-card").forEach((button) => {
-      button.addEventListener("click", () => openSearchResult(button.dataset.resultId));
-    });
-  }
-
-  function openSearchResult(resultId) {
-    const item = searchIndex.find((entry) => entry.id === resultId);
-    if (!item) return;
-    const path = item.paths[0] || [];
-    history = path.map((step) => ({ ...step }));
-    currentNodeId = resultId;
-    closeSearch(false);
-    render();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
 
   function currentResultText() {
     const node = getNode();
@@ -614,13 +483,6 @@
 
   function updateThemeText(theme) {
     els.themeText.textContent = theme === "dark" ? "Тёмная тема" : "Светлая тема";
-  }
-
-  function normalizeSearch(value) {
-    return String(value || "")
-      .toLocaleLowerCase("ru-RU")
-      .replace(/ё/g, "е")
-      .trim();
   }
 
   function truncate(text, max) {
