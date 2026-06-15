@@ -8,6 +8,9 @@
   }
 
   const $ = (selector) => document.querySelector(selector);
+  const on = (element, event, handler) => {
+    if (element) element.addEventListener(event, handler);
+  };
 
   const els = {
     app: $("#app"),
@@ -124,8 +127,10 @@
     try {
       tg.ready();
       tg.expand();
-      if (tg.MainButton && typeof tg.MainButton.hide === "function") {
-        tg.MainButton.hide();
+      hideTelegramMainButton();
+      if (typeof tg.onEvent === "function") {
+        tg.onEvent("viewportChanged", hideTelegramMainButton);
+        tg.onEvent("themeChanged", hideTelegramMainButton);
       }
       document.body.classList.add("telegram-mode");
     } catch (error) {
@@ -133,19 +138,43 @@
     }
   }
 
+  function hideTelegramMainButton() {
+    if (!tg || !tg.MainButton) return;
+    try {
+      const button = tg.MainButton;
+      if (typeof button.hideProgress === "function") button.hideProgress();
+      if (typeof button.disable === "function") button.disable();
+      if (typeof button.setText === "function") button.setText(" ");
+      if (typeof button.setParams === "function") {
+        button.setParams({ is_visible: false, is_active: false, text: " " });
+      }
+      if (typeof button.hide === "function") button.hide();
+      window.setTimeout(() => {
+        try {
+          if (typeof button.hide === "function") button.hide();
+          if (typeof button.disable === "function") button.disable();
+        } catch (error) {
+          // Безопасно игнорируем: это только скрытие служебной кнопки Telegram.
+        }
+      }, 250);
+    } catch (error) {
+      console.warn("Telegram MainButton hide skipped", error);
+    }
+  }
+
   function bindEvents() {
-    els.backButton.addEventListener("click", goBack);
-    els.mobileBack.addEventListener("click", goBack);
-    els.restartButton.addEventListener("click", restart);
-    els.mobileRestart.addEventListener("click", restart);
-    els.copyButton.addEventListener("click", copyResult);
-    els.themeToggle.addEventListener("click", toggleTheme);
-    els.telegramButton.addEventListener("click", sendToTelegram);
-    els.reportButton.addEventListener("click", reportError);
-    els.searchOpenButton.addEventListener("click", openSearch);
-    els.searchOpenButtonMobile.addEventListener("click", openSearch);
-    els.searchCloseButton.addEventListener("click", closeSearch);
-    els.articleSearchInput.addEventListener("input", renderSearchResults);
+    on(els.backButton, "click", goBack);
+    on(els.mobileBack, "click", goBack);
+    on(els.restartButton, "click", restart);
+    on(els.mobileRestart, "click", restart);
+    on(els.copyButton, "click", copyResult);
+    on(els.themeToggle, "click", toggleTheme);
+    on(els.telegramButton, "click", sendToTelegram);
+    on(els.reportButton, "click", reportError);
+    on(els.searchOpenButton, "click", openSearch);
+    on(els.searchOpenButtonMobile, "click", openSearch);
+    on(els.searchCloseButton, "click", closeSearch);
+    on(els.articleSearchInput, "input", renderSearchResults);
     window.addEventListener("keydown", handleHotkeys);
   }
 
@@ -285,9 +314,8 @@
 
   function updateButtons(node) {
     const canBack = history.length > 0;
-    els.backButton.disabled = !canBack;
-    els.mobileBack.disabled = !canBack;
-    els.nextHintButton.textContent = node.type === "result" ? "" : "Выберите вариант →";
+    if (els.backButton) els.backButton.disabled = !canBack;
+    if (els.mobileBack) els.mobileBack.disabled = !canBack;
   }
 
   function renderSteps(node) {

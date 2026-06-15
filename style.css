@@ -853,7 +853,7 @@ button:focus-visible,
     top: 0;
     z-index: 2;
     display: grid;
-    grid-template-columns: 42px 1fr 42px;
+    grid-template-columns: 42px 1fr 42px 42px;
     align-items: center;
     gap: 10px;
     min-height: 72px;
@@ -1171,4 +1171,19 @@ button:focus-visible,
   .search-box input {
     min-height: 54px;
   }
+}
+
+
+/* v1.5: нижняя служебная кнопка справа удалена, поиск исправлен */
+.bottom-actions {
+  justify-content: flex-start;
+}
+
+.bottom-actions .secondary-button {
+  min-width: 140px;
+}
+
+.telegram-mode .bottom-actions .primary-button:disabled,
+.telegram-mode .bottom-actions #nextHintButton {
+  display: none !important;
 }
