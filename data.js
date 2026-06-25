@@ -11,7 +11,7 @@
 
 window.DECISION_TREE = {
   title: "Памятка статей расхода",
-  version: "1.7",
+  version: "1.8",
   startNode: "q-root",
   source: "По схеме Visio: Памятка статей расхода",
   nodes: {
@@ -282,7 +282,7 @@ window.DECISION_TREE = {
         {
           label: "От нас — к клиенту",
           description: "Доставка от нашей компании клиенту.",
-          next: "r-2-4-sales-transport",
+          next: "r-manager-name",
           icon: "outbound"
         }
       ]
